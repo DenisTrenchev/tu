@@ -2,70 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
-char buff[100000];
-
-void readFromFile(char *file_name){
-    FILE *f;
-    char line[300];
-
-    strcpy(buff, "");
-
-    f = fopen(file_name, "r");
-    if(f == NULL){
-        perror("File not found");
-    }
-    while (fgets(line, 300, f)!=NULL){
-        strcat(buff, line);
-    }
-    fclose(f);
-}
-
-void writeToFile(char *file_name){
-    int empty_lines;
-    int operators;
-    FILE *f;
-
-    f = fopen(file_name, "w");
-
-    if(f == NULL){
-        perror("File not found");
-    }
-    empty_lines = lineCheck();
-    operators = operatorCheck();
-    fprintf(f, "Empty lines:%d\n", empty_lines);
-    fprintf(f, "Operators:%d", operators);
-}
-
-void readFromCommandLine(){
+int lineCheck(char* line, size_t length){
     int i = 0;
-    char c;
-    char cl[50];
-    while((c = getchar()) != EOF){
-        cl[i] = c;
+    while(i < length){
+        if (!(isspace(line[i]))){
+            return 0;
+        }
         i++;
     }
-    printf("%s", cl);
+    return 1;
 }
 
-int lineCheck(){
-    int counter = 0;
-    int empty_lines = 0;
-    while(counter < strlen(buff)){
-        if(buff[counter] == '\n' && buff[counter + 1] == '\n'){
-            empty_lines++;
-        }else if(buff[counter] == '\n' && buff[counter + 1] == '\0'){
-            empty_lines++;
-        }
-        counter++;
-    }
-    return empty_lines;
-}
-
-int operatorCheck(){
+int operatorCheck(char* buff, size_t read_bytes){
     int counter = 0;
     int operators = 0;
-    while(counter < strlen(buff)){    
+    while(counter < read_bytes){    
         if(buff[counter] == '+' && buff[counter + 1] == '+'){
             operators++;
             counter++;
@@ -150,42 +103,98 @@ int operatorCheck(){
         }
         counter++;
     }
-    printf("Operators:%d\n" ,operators);
     return operators;
 }
 
-int main(){
-    char i[30];
-    scanf("%s", &i);
-	/*int menu_selection = 0;
+void magic(FILE *file, FILE *outputfile, int from_file){
+    size_t buffer_size = 0;
+    size_t read_bytes = 0;
+    char* line = NULL;
+    int empty_lines = 0;
+    int operators = 0;
 
-	printf("file to file        : [1]\n");
-	printf("file to terminal    : [2]\n");
-	printf("terminal to file    : [3]\n");
-	printf("terminal to terminweal: [4]\n");
-	scanf("%d", &menu_selection);
-	
-    switch(menu_selection){
+    read_bytes = getline(&line, &buffer_size, file);
+    while(read_bytes != -1){
+        if (lineCheck(line, read_bytes)){
+            empty_lines++;
+        }
+        operators += operatorCheck(line, read_bytes);
+
+        read_bytes = getline(&line, &buffer_size, file);
+    }
+    fprintf(outputfile, "Number of blank lines: %d\n", empty_lines);
+    fprintf(outputfile, "Number of operators: %d\n", operators);
+    free(line);
+}
+
+int main(){
+    int option;
+    char* read = NULL;
+    char* write = NULL;
+    size_t read_bytes_read = 0;
+    size_t read_bytes_write = 0;
+    size_t dummy_variable = 0;
+    size_t dummy_variable2 = 0;
+
+    int from_file;
+
+    printf("File to File                : [1]\n");
+    printf("File to Command line        : [2]\n");
+    printf("Command line to File        : [3]\n");
+    printf("Command line to Command line: [4]\n");
+
+    scanf("%d", &option);
+    
+    FILE *readFile;
+    FILE *writeFile;
+
+    getc(stdin);
+    switch(option){
         case 1:
-            readFromFile("test.txt");
-            writeToFile("test1.txt");
+            printf("Enter file to read from:");
+            read_bytes_read = getline(&read, &dummy_variable, stdin);
+            printf("Enter file to write to:");
+            read_bytes_write = getline(&write, &dummy_variable2, stdin);
+            read[read_bytes_read-1] = '\0';
+            write[read_bytes_write-1] = '\0';
+
+            readFile = fopen(read, "r");
+            writeFile = fopen(write, "w");
+
+            magic(readFile, writeFile, from_file = 1);  
+
+            fclose(readFile);
+            fclose(writeFile);
+            free(read);
+            free(write);
             break;
         case 2:
-            readFromFile("test.txt");
-            lineCheck();
-            operatorCheck();
+            printf("Enter file to read from:");
+            read_bytes_read = getline(&read, &dummy_variable, stdin);
+            read[read_bytes_read-1] = '\0';
+            readFile = fopen(read, "r");
+
+            magic(readFile, stdout, from_file = 1);  
+
+            fclose(readFile);
+            free(read);
             break;
         case 3:
-            readFromCommandLine();
-            writeToFile("test1.txt");
+            printf("Enter file to write to:");
+            read_bytes_write = getline(&write, &dummy_variable, stdin);
+            printf("Enter text. Press ctrl+D to stop:\n");
+            write[read_bytes_write-1] = '\0';
+            writeFile = fopen(write, "w");
+
+            magic(stdin, writeFile, from_file = 0);  
+
+            fclose(writeFile);
+            free(write);
             break;
         case 4:
-            readFromCommandLine();
-            lineCheck();
-            operatorCheck();
+            printf("Enter text. Press ctrl+D to stop:\n");
+            magic(stdin, stdout, from_file = 0);
             break;
-    }*/
-    readFromFile(i);
-    operatorCheck();
+    }
     return 0;
 }
