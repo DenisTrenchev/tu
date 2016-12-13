@@ -106,7 +106,7 @@ int operatorCheck(char* buff, size_t read_bytes){
     return operators;
 }
 
-void magic(FILE *file, FILE *outputfile, int from_file){
+void blackmagic(FILE *file, FILE *outputfile, int from_file){
     size_t buffer_size = 0;
     size_t read_bytes = 0;
     char* line = NULL;
@@ -151,8 +151,14 @@ int main(){
     getc(stdin);
     switch(option){
         case 1:
-            printf("Enter file to read from:");
-            read_bytes_read = getline(&read, &dummy_variable, stdin);
+            printf("Enter C file to read from:");
+            while(1){
+                read_bytes_read = getline(&read, &dummy_variable, stdin);
+                if(read[read_bytes_read-2] == 'c' && read[read_bytes_read-3] == '.'){
+                    break;
+                }
+                printf("Enter C file:");
+            }
             printf("Enter file to write to:");
             read_bytes_write = getline(&write, &dummy_variable2, stdin);
             read[read_bytes_read-1] = '\0';
@@ -161,7 +167,7 @@ int main(){
             readFile = fopen(read, "r");
             writeFile = fopen(write, "w");
 
-            magic(readFile, writeFile, from_file = 1);  
+            blackmagic(readFile, writeFile, from_file = 1);  
 
             fclose(readFile);
             fclose(writeFile);
@@ -169,12 +175,18 @@ int main(){
             free(write);
             break;
         case 2:
-            printf("Enter file to read from:");
-            read_bytes_read = getline(&read, &dummy_variable, stdin);
+            printf("Enter C file to read from:");
+            while(1){
+                read_bytes_read = getline(&read, &dummy_variable, stdin);
+                if(read[read_bytes_read-2] == 'c' && read[read_bytes_read-3] == '.'){
+                    break;
+                }
+                printf("Enter C file:");
+            }
             read[read_bytes_read-1] = '\0';
             readFile = fopen(read, "r");
 
-            magic(readFile, stdout, from_file = 1);  
+            blackmagic(readFile, stdout, from_file = 1);  
 
             fclose(readFile);
             free(read);
@@ -186,14 +198,14 @@ int main(){
             write[read_bytes_write-1] = '\0';
             writeFile = fopen(write, "w");
 
-            magic(stdin, writeFile, from_file = 0);  
+            blackmagic(stdin, writeFile, from_file = 0);  
 
             fclose(writeFile);
             free(write);
             break;
         case 4:
             printf("Enter text. Press ctrl+D to stop:\n");
-            magic(stdin, stdout, from_file = 0);
+            blackmagic(stdin, stdout, from_file = 0);
             break;
     }
     return 0;
