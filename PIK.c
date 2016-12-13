@@ -165,7 +165,20 @@ int main(){
             write[read_bytes_write-1] = '\0';
 
             readFile = fopen(read, "r");
+            if(!readFile){
+                printf("ERROR! %s\n", strerror(errno));
+                free(read);
+                free(write);
+                return -1;
+            }
             writeFile = fopen(write, "w");
+            if(!writeFile){
+                printf("ERROR! %s\n", strerror(errno));
+                fclose(readFile);
+                free(read);
+                free(write);
+                return -1;
+            }
 
             blackmagic(readFile, writeFile, from_file = 1);  
 
@@ -185,6 +198,11 @@ int main(){
             }
             read[read_bytes_read-1] = '\0';
             readFile = fopen(read, "r");
+            if(!readFile){
+                printf("ERROR! %s\n", strerror(errno));
+                free(read);
+                return -1;
+            }
 
             blackmagic(readFile, stdout, from_file = 1);  
 
@@ -197,6 +215,11 @@ int main(){
             printf("Enter text. Press ctrl+D to stop:\n");
             write[read_bytes_write-1] = '\0';
             writeFile = fopen(write, "w");
+            if(!writeFile){
+                printf("ERROR! %s\n", strerror(errno));
+                free(write);
+                return -1;
+            }
 
             blackmagic(stdin, writeFile, from_file = 0);  
 
